@@ -1,19 +1,38 @@
 import asyncio
-
-ip = 'localhost'
-port = 5000
+from queue import Queue
 
 
-def handle_client(reader, writer):
-    request = (await reader.read(255)).decode('utf8')
-    print('request, ', request)
-    responce = 'Hi!!\n'.encode()
-    writer.write(responce)
-    await writer.drain()
-    writer.close()
+class Server:
+    def __init__(self, ip, port):
+        self.ip = ip
+        self.port = port
+        self.revision_log = []
+        self.pending_processing = Queue()
+
+    def handle_client(self, reader, writer):
+        request = (await reader.read(255)).decode('utf8')
+        print('request, ', request)
+        response = 'Hi!!\n'.encode()
+        writer.write(response)
+        await writer.drain()
+        writer.close()
+
+
+class Operation:
+    def __init__(self, type, value, index):
+        self.type = type
+        self.value = value
+        self.index = index
+
+
+class InsertOperation(Operation):
+    pass
+
+class RemoveOperation(Operation):
+    pass
 
 
 if __name__ == '__main__':
-    server = await asyncio.start_server(handle_client, ip, port)
-    async with server:
-        server.serve_forever()
+    server = Server('localhost', 5000)
+    async with await asyncio.start_server(server.handle_client, server.ip, server.port) as s:
+        s.serve_forever()
