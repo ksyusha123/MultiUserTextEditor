@@ -1,4 +1,3 @@
-import zope.interface
 from abc import ABCMeta, abstractmethod
 
 

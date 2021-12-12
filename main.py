@@ -1,5 +1,4 @@
 import sys
-import os
 from PyQt5.QtWidgets import QApplication
 from client.gui import TextEditor
 
