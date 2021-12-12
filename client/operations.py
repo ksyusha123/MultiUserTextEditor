@@ -1,4 +1,20 @@
+import zope.interface
+from abc import ABCMeta, abstractmethod
+
+
 class Operation:
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def do(self):
+        pass
+
+    @abstractmethod
+    def redo(self):
+        pass
+
+
+class InsertOperation(Operation):
     def __init__(self, symbol, index):
         self.symbol = symbol
         self.index = index
@@ -6,21 +22,24 @@ class Operation:
     def do(self):
         pass
 
-
     def redo(self):
         pass
 
 
-class InsertOperation(Operation):
-    def do(self):
+class DeleteOperation(Operation):
+    def __init__(self, index):
+        self.index = index
+
+    def redo(self):
         pass
 
-
-
-class RemoveOperation(Operation):
     def do(self):
         pass
 
 
 class StyleOperation(Operation):
-    pass
+    def redo(self):
+        pass
+
+    def do(self):
+        pass

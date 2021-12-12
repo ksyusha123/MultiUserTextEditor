@@ -41,8 +41,10 @@ class TextEditor(QMainWindow):
             index = operation[1]
             self.client.handle_operation(
                 operations.InsertOperation(symbol, index))
+        elif operation[0] == 'delete':
+            index = operation[1]
+            self.client.handle_operation(operations.DeleteOperation(index))
         self.prev_text = current_text
-
 
     def init_menu(self):
         open_action = self.create_action("Open", "Ctrl+O", "Open file",
