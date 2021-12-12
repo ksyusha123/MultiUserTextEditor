@@ -1,22 +1,25 @@
 class Operation:
-    def __init__(self, type, symbol, index):
-        self.type = type
+    def __init__(self, symbol, index):
         self.symbol = symbol
         self.index = index
 
     def do(self):
         pass
 
+
     def redo(self):
         pass
 
 
 class InsertOperation(Operation):
-    pass
+    def do(self):
+        pass
+
 
 
 class RemoveOperation(Operation):
-    pass
+    def do(self):
+        pass
 
 
 class StyleOperation(Operation):

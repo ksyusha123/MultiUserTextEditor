@@ -2,12 +2,22 @@ from pathlib import Path
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
     QToolBar, QComboBox, QFontComboBox, QSpinBox
 from PyQt5.QtGui import QFontDatabase
+import difflib
+
+import client.operations as operations
+import client.client as client
 
 
-class TextRedactor(QMainWindow):
+class TextEditor(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.client = client.Client()
         self.text = QTextEdit()
+        self.prev_text = ""         #здесь нужно хранить последнюю версию
+        # текста до изменений
+        self.text.textChanged.connect(self.handle_operation)
+
         self.setCentralWidget(self.text)
 
         self.menu_bar = self.menuBar()
@@ -17,6 +27,22 @@ class TextRedactor(QMainWindow):
         self.init_toolbar()
 
         self.show()
+
+    def handle_operation(self):
+        current_text = self.text.toPlainText()
+        matcher = difflib.SequenceMatcher(None, self.prev_text, current_text)
+        opcodes = matcher.get_opcodes()
+        if opcodes[0][0] == 'equal':
+            operation = opcodes[1]
+        else:
+            operation = opcodes[0]
+        if operation[0] == 'insert':
+            symbol = current_text[operation[3]:operation[4]]
+            index = operation[1]
+            self.client.handle_operation(
+                operations.InsertOperation(symbol, index))
+        self.prev_text = current_text
+
 
     def init_menu(self):
         open_action = self.create_action("Open", "Ctrl+O", "Open file",
