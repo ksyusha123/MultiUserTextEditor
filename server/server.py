@@ -17,19 +17,8 @@ class Server:
         await writer.drain()
         writer.close()
 
-
-class Operation:
-    def __init__(self, type, value, index):
-        self.type = type
-        self.value = value
-        self.index = index
-
-
-class InsertOperation(Operation):
-    pass
-
-class RemoveOperation(Operation):
-    pass
+    def apply_operation(self, operation, revision, sender):
+        # todo
 
 
 if __name__ == '__main__':
