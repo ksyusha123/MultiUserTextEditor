@@ -14,7 +14,7 @@ class Operation:
 
 
 class InsertOperation(Operation):
-    def __init__(self, symbol, index):
+    def __init__(self, index, symbol):
         self.symbol = symbol
         self.index = index
 
