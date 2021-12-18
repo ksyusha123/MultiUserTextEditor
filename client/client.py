@@ -14,4 +14,4 @@ class Client:
         # отправить на сервер
 
     def receive(self):
-        #todo
+        pass #todo

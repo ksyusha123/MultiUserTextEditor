@@ -1,6 +1,10 @@
 import asyncio
 from queue import Queue
 
+'''
+    insert pos text
+'''
+
 
 class Server:
     def __init__(self, ip, port):
@@ -18,7 +22,7 @@ class Server:
         writer.close()
 
     def apply_operation(self, operation, revision, sender):
-        # todo
+        pass  # TODO
 
 
 if __name__ == '__main__':
