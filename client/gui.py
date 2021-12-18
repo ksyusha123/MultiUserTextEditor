@@ -14,7 +14,7 @@ class TextEditor(QMainWindow):
 
         self.client = client.Client()
         self.text = QTextEdit()
-        self.prev_text = ""         #здесь нужно хранить последнюю версию
+        self.prev_text = ""  # здесь нужно хранить последнюю версию
         # текста до изменений
         self.text.textChanged.connect(self.send_operation)
 
@@ -49,6 +49,8 @@ class TextEditor(QMainWindow):
     def init_menu(self):
         open_action = self.create_action("Open", "Ctrl+O", "Open file",
                                          self.open_file)
+        create_server_action = self.create_action("Connect", "Alt+C", "Connect to server",
+                                                  self.client.create_server(self.text.toPlainText()))
         # save_action = self.create_action("Download", "Ctrl+D",
         #                                  "Download file", self.download_file)
         # create_file_action = self.create_action(
@@ -56,6 +58,7 @@ class TextEditor(QMainWindow):
 
         file_menu = self.menu_bar.addMenu("&File")
         file_menu.addAction(open_action)
+        file_menu.addAction(create_server_action)
         # file_menu.addAction(save_action)
         # file_menu.addAction(create_file_action)
 

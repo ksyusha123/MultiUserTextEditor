@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, ABC
 
 
 class Operation:
@@ -12,11 +12,26 @@ class Operation:
     def redo(self):
         pass
 
+    @abstractmethod
+    def to_json(self):
+        pass
+
 
 class InsertOperation(Operation):
     def __init__(self, index, symbol):
         self.symbol = symbol
         self.index = index
+
+    def do(self):
+        pass
+
+    def redo(self):
+        pass
+
+
+class CreateServerOperation(Operation):
+    def __init__(self, file):
+        self.file = file
 
     def do(self):
         pass
