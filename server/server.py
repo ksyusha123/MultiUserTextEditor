@@ -1,4 +1,5 @@
 import asyncio
+import socket
 from queue import Queue
 import json
 import uuid
@@ -41,21 +42,23 @@ class Server:
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
-            previous_operation = self.revision_log[1][-1] if len(self.revision_log) != 0 else None
-            applied_operation = self.apply_operation(operation)
+            previous_operation = None
+            applied_operation = self.apply_operation(request)
             revision = None  # request_revision + 1
-            self.send_to_users(writer, applied_operation, revision, 1)
+            self.send_to_users(request, applied_operation, revision, request['file_id'])
 
-    def send_to_users(self, writer, applied_operation, revision, server_id):
+    def send_to_users(self, request, applied_operation, revision, server_id):
         ack = {"operation": "ack",
                "revision": revision}
         to_send = {"operation": applied_operation.to_dict(),
                    "revision": revision}
-        sin = json.dumps(to_send)
+        sin = json.dumps(to_send).encode()
+        ack = json.dumps(ack).encode()
         for user in self.connected_users[server_id]:
-            if user == writer:
-                writer.write(json.dumps(ack))
-            user.write(sin)
+            if request['user_id'] == user:
+                self.connected_users[server_id][user].sendall(ack)
+            else:
+                self.connected_users[server_id][user].sendall(sin)
 
     def apply_operation(self, request, previous_operation=None, text=None):
         operation = request['operation']
@@ -63,7 +66,10 @@ class Server:
             id = self.create_server(operation)
             self.lock.acquire()
             self.doc_state[id] = operation.file
-            self.connected_users[id] = [request['user_id']]
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((request['addr'], 63201))
+            self.connected_users[id] = {request['user_id']: sock}
+            request['file_id'] = id
             self.lock.release()
             return operation
 
@@ -83,7 +89,7 @@ class Server:
         return f"{text[:operation.index]}{text[operation.index + 1:]}"
 
     def create_server(self, operation):
-        id = uuid.uuid1()
+        id = str(uuid.uuid1())
         self.revision_log[id] = []
         self.pending_processing = Queue()
         self.doc_state[id] = operation.file

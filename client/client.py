@@ -11,9 +11,19 @@ from threading import Thread, Lock
 server_address = ("localhost", 5000)
 
 
+def get_response(sock):
+    data = []
+    while True:
+        r = sock.recv(1024)
+        data.append(r.decode())
+        if len(r) < 1024:
+            break
+    return json.loads(''.join(data))
+
+
 class Client:
     def __init__(self):
-        self.guid = uuid.uuid1()
+        self.guid = str(uuid.uuid1())
         self.waiting = Queue()
         self.previous_operation = None
         self.revision = 1
@@ -44,7 +54,9 @@ class Client:
         while self.connected:
             try:
                 sock, addr = self.receiver.accept()
-                response = self.get_response(sock)
+                print(addr)
+                response = get_response(sock)
+                print(response)
                 if response['operation'] == 'ack':
                     self.lock.acquire()
                     self.waiting_ack = None
@@ -67,15 +79,6 @@ class Client:
         }
         return json.dumps(dict)
 
-    def get_response(self, sock):
-        data = []
-        while True:
-            r = sock.recv(1024)
-            if not r:
-                break
-            data.append(r.decode())
-        return json.loads(''.join(data))
-
     def connect_to_server(self):
         pass
 
@@ -87,13 +90,15 @@ class Client:
             for i in range(3):
                 try:
                     cl.sender.connect(server_address)
-                    request = {'operation': operation.to_dict(), 'user_id': self.guid}
-                    cl.sender.sendall(json.dumps(request).encode())
+                    request = {'operation': operation.to_dict(), 'user_id': cl.guid, 'addr': 'localhost'}
+                    dump = json.dumps(request)
+                    cl.sender.sendall(dump.encode())
                 except socket.error:
                     continue
                 finally:
                     sock, addr = cl.receiver.accept()
-                    response = self.get_response(sock)
+                    response = get_response(sock)
+                    print(response)
                     if response['id']:
                         self.file_id = response['id']
                         self.connected = True
