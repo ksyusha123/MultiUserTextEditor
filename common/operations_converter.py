@@ -1,4 +1,4 @@
-from client.operations import InsertOperation, DeleteOperation
+from common.operations import InsertOperation, DeleteOperation
 
 
 def _insert_insert(insert1: InsertOperation, insert2: InsertOperation) -> InsertOperation:
