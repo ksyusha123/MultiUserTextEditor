@@ -28,5 +28,5 @@ class Client:
         def create_server_function():
             # make async
             cl.sock.connect(server_address)
-            cl.sock.sendall(operation.to_json())
+            cl.sock.sendall(operation.to_dict())
         return create_server_function

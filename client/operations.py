@@ -13,7 +13,7 @@ class Operation:
         pass
 
     @abstractmethod
-    def to_json(self):
+    def to_dict(self):
         pass
 
 
@@ -45,7 +45,7 @@ class DeleteOperation(Operation):
         self.index = index
 
     def redo(self):
-        pass
+        raise NotImplementedError
 
     def do(self):
         pass
