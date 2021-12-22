@@ -1,10 +1,9 @@
 from pathlib import Path
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
-    QToolBar, QComboBox, QFontComboBox, QSpinBox
-from PyQt5.QtGui import QFontDatabase
+    QFontComboBox, QSpinBox
 import difflib
 
-import client.operations as operations
+import common.operations as operations
 import client.client as client
 
 

@@ -21,7 +21,8 @@ class InsertOperation(Operation):
     def to_json(self):
         pass
 
-    def __init__(self, index, text):
+    def __init__(self, name, index, text):
+        self.name = name
         self.text = text
         self.index = index
 
@@ -66,3 +67,8 @@ class StyleOperation(Operation):
 
     def do(self):
         pass
+
+
+def operation_from_json(dict):
+    if dict['name'] == 'Insert':
+        return InsertOperation(dict['name'], dict['text'], dict['index'])
