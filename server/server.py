@@ -3,7 +3,7 @@ from queue import Queue
 import json
 import uuid
 
-from common.operations_converter import *
+from common.operations_converter import convert_operation
 '''
     insert pos text
 '''
@@ -54,25 +54,8 @@ class Server:
                 writer.write(json.dumps(ack))
             user.write(sin)
 
-    def convert_operation(self, operation, previous_operation):
-        if previous_operation is InsertOperation:
-            if operation is InsertOperation:
-                operation_to_perform = insert_insert(previous_operation,
-                                                     operation)
-            elif operation is DeleteOperation:
-                operation_to_perform = insert_delete(previous_operation,
-                                                     operation)
-        elif previous_operation is DeleteOperation:
-            if operation is InsertOperation:
-                operation_to_perform = delete_insert(previous_operation,
-                                                     operation)
-            elif operation is DeleteOperation:
-                operation_to_perform = delete_delete(previous_operation,
-                                                     operation)
-        return operation_to_perform
-
     def apply_operation(self, previous_operation, operation, text):
-        operation_to_perform = self.convert_operation(operation,
+        operation_to_perform = convert_operation(operation,
                                                   previous_operation)
         if operation_to_perform is InsertOperation:
             self.insert(operation, text)
