@@ -3,10 +3,8 @@ from queue import Queue
 import json
 import uuid
 
-from common.operations_converter import *
-'''
-    insert pos text
-'''
+from common.operations_converter import convert_operation
+from common.operations import *
 
 
 class Server:
@@ -54,25 +52,8 @@ class Server:
                 writer.write(json.dumps(ack))
             user.write(sin)
 
-    def convert_operation(self, operation, previous_operation):
-        if previous_operation is InsertOperation:
-            if operation is InsertOperation:
-                operation_to_perform = insert_insert(previous_operation,
-                                                     operation)
-            elif operation is DeleteOperation:
-                operation_to_perform = insert_delete(previous_operation,
-                                                     operation)
-        elif previous_operation is DeleteOperation:
-            if operation is InsertOperation:
-                operation_to_perform = delete_insert(previous_operation,
-                                                     operation)
-            elif operation is DeleteOperation:
-                operation_to_perform = delete_delete(previous_operation,
-                                                     operation)
-        return operation_to_perform
-
     def apply_operation(self, previous_operation, operation, text):
-        operation_to_perform = self.convert_operation(operation,
+        operation_to_perform = convert_operation(operation,
                                                   previous_operation)
         if operation_to_perform is InsertOperation:
             self.insert(operation, text)
@@ -81,19 +62,16 @@ class Server:
         return operation_to_perform
 
     def insert(self, operation: InsertOperation, text: str) -> str:
-        return f"{text[:operation.index]}{operation.symbol}" \
+        return f"{text[:operation.index]}{operation.text}" \
                f"{text[operation.index:]}"
 
     def delete(self, operation: DeleteOperation, text: str) -> str:
         return f"{text[:operation.index]}{text[operation.index + 1:]}"
 
-    def connect(self, operation):
-        pass
-
     def create_server(self, operation):
         id = uuid.uuid1()
         self.revision_log[id] = []
-        # self.pending_processing[id] = Queue()
+        self.pending_processing = Queue()
         self.doc_state[id] = operation["data"]
         self.connected_users[id] = [operation["user"]]
         return None
@@ -105,4 +83,3 @@ async def start_server():
         await s.serve_forever()
 
 asyncio.run(start_server())
-

@@ -1,3 +1,6 @@
+import sys
+from PyQt5.QtWidgets import QApplication
+from gui import TextEditor
 import json
 import socket
 import uuid
@@ -99,3 +102,10 @@ class Client:
                     break
 
         return Thread(target=create_server_function).start
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    client = Client()
+    a = TextEditor(client)
+    sys.exit(app.exec_())

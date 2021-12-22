@@ -4,14 +4,13 @@ from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
 import difflib
 
 import common.operations as operations
-import client.client as client
 
 
 class TextEditor(QMainWindow):
-    def __init__(self):
+    def __init__(self, client):
         super().__init__()
 
-        self.client = client.Client()
+        self.client = client
         self.text = QTextEdit()
         self.prev_text = ""  # здесь нужно хранить последнюю версию
         # текста до изменений
