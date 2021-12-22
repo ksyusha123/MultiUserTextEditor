@@ -4,9 +4,7 @@ import json
 import uuid
 
 from common.operations_converter import convert_operation
-'''
-    insert pos text
-'''
+from common.operations import *
 
 
 class Server:
@@ -64,19 +62,16 @@ class Server:
         return operation_to_perform
 
     def insert(self, operation: InsertOperation, text: str) -> str:
-        return f"{text[:operation.index]}{operation.symbol}" \
+        return f"{text[:operation.index]}{operation.text}" \
                f"{text[operation.index:]}"
 
     def delete(self, operation: DeleteOperation, text: str) -> str:
         return f"{text[:operation.index]}{text[operation.index + 1:]}"
 
-    def connect(self, operation):
-        pass
-
     def create_server(self, operation):
         id = uuid.uuid1()
         self.revision_log[id] = []
-        # self.pending_processing[id] = Queue()
+        self.pending_processing = Queue()
         self.doc_state[id] = operation["data"]
         self.connected_users[id] = [operation["user"]]
         return None
@@ -88,4 +83,3 @@ async def start_server():
         await s.serve_forever()
 
 asyncio.run(start_server())
-
