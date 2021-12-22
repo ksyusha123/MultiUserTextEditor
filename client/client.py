@@ -80,14 +80,15 @@ class Client:
         pass
 
     def create_server(self, file: str):
-        operation = CreateServerOperation(file)
+        operation = CreateServerOperation("file")
         cl = self
 
         def create_server_function():
             for i in range(3):
                 try:
                     cl.sender.connect(server_address)
-                    cl.sender.sendall(operation.to_json())
+                    request = {'operation': operation.to_dict(), 'user_id': self.guid}
+                    cl.sender.sendall(json.dumps(request).encode())
                 except socket.error:
                     continue
                 finally:
@@ -101,7 +102,7 @@ class Client:
                         sock.close()
                     break
 
-        return Thread(target=create_server_function).start
+        return create_server_function
 
 
 if __name__ == '__main__':

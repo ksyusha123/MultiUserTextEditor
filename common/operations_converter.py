@@ -27,7 +27,7 @@ def _delete_delete(delete1, delete2):
     return None
 
 
-def convert_operation(self, operation, previous_operation):
+def convert_operation(operation, previous_operation):
     if previous_operation is InsertOperation:
         if operation is InsertOperation:
             operation_to_perform = _insert_insert(previous_operation,

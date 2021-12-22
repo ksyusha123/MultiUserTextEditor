@@ -85,3 +85,4 @@ def operation_from_json(dict):
         return DeleteOperation(dict['index'])
     if dict['name'] == 'Create':
         return CreateServerOperation(dict['file'])
+    return None
