@@ -18,8 +18,11 @@ class Operation:
 
 
 class InsertOperation(Operation):
-    def __init__(self, index, symbol):
-        self.symbol = symbol
+    def to_json(self):
+        pass
+
+    def __init__(self, index, text):
+        self.text = text
         self.index = index
 
     def do(self):
@@ -30,6 +33,9 @@ class InsertOperation(Operation):
 
 
 class CreateServerOperation(Operation):
+    def to_json(self):
+        pass
+
     def __init__(self, file):
         self.file = file
 
@@ -41,6 +47,9 @@ class CreateServerOperation(Operation):
 
 
 class DeleteOperation(Operation):
+    def to_json(self):
+        pass
+
     def __init__(self, index):
         self.index = index
 

@@ -49,8 +49,9 @@ class TextEditor(QMainWindow):
     def init_menu(self):
         open_action = self.create_action("Open", "Ctrl+O", "Open file",
                                          self.open_file)
-        create_server_action = self.create_action("Connect", "Alt+C", "Connect to server",
-                                                  self.client.create_server(self.text.toPlainText()))
+        create_server_action = self.create_action(
+            "Connect", "Alt+C", "Connect to server",
+            self.client.create_server(self.text.toPlainText()))
         # save_action = self.create_action("Download", "Ctrl+D",
         #                                  "Download file", self.download_file)
         # create_file_action = self.create_action(
