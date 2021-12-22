@@ -21,8 +21,8 @@ class InsertOperation(Operation):
     def to_json(self):
         pass
 
-    def __init__(self, name, index, text):
-        self.name = name
+    def __init__(self, index, text):
+        self.name = 'Insert'
         self.text = text
         self.index = index
 
@@ -34,11 +34,16 @@ class InsertOperation(Operation):
 
 
 class CreateServerOperation(Operation):
+
     def to_json(self):
-        pass
+        return {
+            'name': self.name,
+            'file': self.file
+        }
 
     def __init__(self, file):
         self.file = file
+        self.name = 'Create'
 
     def do(self):
         pass
@@ -49,10 +54,14 @@ class CreateServerOperation(Operation):
 
 class DeleteOperation(Operation):
     def to_json(self):
-        pass
+        return {
+            'name': self.name,
+            'index': self.index
+        }
 
     def __init__(self, index):
         self.index = index
+        self.name = 'Delete'
 
     def redo(self):
         raise NotImplementedError
@@ -71,4 +80,8 @@ class StyleOperation(Operation):
 
 def operation_from_json(dict):
     if dict['name'] == 'Insert':
-        return InsertOperation(dict['name'], dict['text'], dict['index'])
+        return InsertOperation(dict['text'], dict['index'])
+    if dict['name'] == 'Delete':
+        return DeleteOperation(dict['index'])
+    if dict['name'] == 'Create':
+        return CreateServerOperation(dict['file'])
