@@ -39,7 +39,6 @@ class Client:
             else:
                 operation = response['operation']
 
-
     def get_response(self, sock):
         data = []
         while True:

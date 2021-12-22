@@ -2,6 +2,8 @@ import asyncio
 from queue import Queue
 import json
 import uuid
+
+from common.operations_converter import *
 '''
     insert pos text
 '''
@@ -12,7 +14,7 @@ class Server:
         self.ip = ip
         self.port = port
         self.revision_log = {}
-        self.pending_processing = {}
+        self.pending_processing = Queue()
         self.doc_state = {}
         self.connected_users = {}
 
@@ -24,26 +26,66 @@ class Server:
                 if not data:
                     break
                 request.append(data)
-            operation = json.loads("".join(request))
-            if operation["name"] == "close":
-                pass
-            ack = self.apply_operation(operation)
-            writer.write(json.dumps(ack))
-            operation["revision"] = ack["revision"]
-            sin = json.dumps(operation)
-            for user in self.connected_users:
-                if user == writer:
-                    continue
-                user.write(sin)
+            request = json.loads("".join(request))
+            # if operation == "close":
+            #     pass
+            self.pending_processing.put((writer, request))
 
-    def apply_operation(self, operation):
-        pass
+    def process_requests(self):
+        writer, request = self.pending_processing.get()
+        server_id, user, operation, request_revision = \
+            request["server_id"], request["user"], request["operation"], \
+            request["revision"]
+        previous_operation = self.revision_log[server_id][-1]
+        applied_operation = self.apply_operation(operation,
+                                                 previous_operation,
+                                                 self.doc_state[server_id])
+        revision = request_revision + 1
+        self.send_to_users(writer, applied_operation, revision, server_id)
 
-    def insert(self, operation):
-        pass
+    def send_to_users(self, writer, applied_operation, revision, server_id):
+        ack = {"operation": "ack",
+               "revision": revision}
+        to_send = {"operation": applied_operation.to_dict(),
+                   "revision": revision}
+        sin = json.dumps(to_send)
+        for user in self.connected_users[server_id]:
+            if user == writer:
+                writer.write(json.dumps(ack))
+            user.write(sin)
 
-    def delete(self, operation):
-        pass
+    def convert_operation(self, operation, previous_operation):
+        if previous_operation is InsertOperation:
+            if operation is InsertOperation:
+                operation_to_perform = insert_insert(previous_operation,
+                                                     operation)
+            elif operation is DeleteOperation:
+                operation_to_perform = insert_delete(previous_operation,
+                                                     operation)
+        elif previous_operation is DeleteOperation:
+            if operation is InsertOperation:
+                operation_to_perform = delete_insert(previous_operation,
+                                                     operation)
+            elif operation is DeleteOperation:
+                operation_to_perform = delete_delete(previous_operation,
+                                                     operation)
+        return operation_to_perform
+
+    def apply_operation(self, previous_operation, operation, text):
+        operation_to_perform = self.convert_operation(operation,
+                                                  previous_operation)
+        if operation_to_perform is InsertOperation:
+            self.insert(operation, text)
+        else:
+            self.delete(operation, text)
+        return operation_to_perform
+
+    def insert(self, operation: InsertOperation, text: str) -> str:
+        return f"{text[:operation.index]}{operation.symbol}" \
+               f"{text[operation.index:]}"
+
+    def delete(self, operation: DeleteOperation, text: str) -> str:
+        return f"{text[:operation.index]}{text[operation.index + 1:]}"
 
     def connect(self, operation):
         pass
@@ -51,7 +93,7 @@ class Server:
     def create_server(self, operation):
         id = uuid.uuid1()
         self.revision_log[id] = []
-        self.pending_processing[id] = Queue()
+        # self.pending_processing[id] = Queue()
         self.doc_state[id] = operation["data"]
         self.connected_users[id] = [operation["user"]]
         return None
