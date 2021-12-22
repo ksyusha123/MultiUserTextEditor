@@ -18,7 +18,7 @@ class Operation:
 
 
 class InsertOperation(Operation):
-    def to_json(self):
+    def to_dict(self):
         pass
 
     def __init__(self, index, text):
@@ -35,7 +35,7 @@ class InsertOperation(Operation):
 
 class CreateServerOperation(Operation):
 
-    def to_json(self):
+    def to_dict(self):
         return {
             'name': self.name,
             'file': self.file
@@ -53,7 +53,7 @@ class CreateServerOperation(Operation):
 
 
 class DeleteOperation(Operation):
-    def to_json(self):
+    def to_dict(self):
         return {
             'name': self.name,
             'index': self.index
@@ -70,12 +70,12 @@ class DeleteOperation(Operation):
         pass
 
 
-class StyleOperation(Operation):
-    def redo(self):
-        pass
-
-    def do(self):
-        pass
+# class StyleOperation(Operation):
+#     def redo(self):
+#         pass
+#
+#     def do(self):
+#         pass
 
 
 def operation_from_json(dict):
