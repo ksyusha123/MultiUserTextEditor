@@ -80,7 +80,7 @@ class Server:
         if previous_operation:
             operation = convert_operation(operation, previous_operation)
         self.previous_operations[request['server_id']] = operation
-        operation.do(text)
+        self.doc_state['server_id'] = operation.do(text)
         return operation
 
     def create_server(self, operation):
