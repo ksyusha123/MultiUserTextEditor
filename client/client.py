@@ -1,6 +1,3 @@
-import sys
-from PyQt5.QtWidgets import QApplication
-from gui import TextEditor
 import json
 import socket
 import uuid
@@ -19,6 +16,15 @@ def get_response(sock):
         if len(r) < 1024:
             break
     return json.loads(''.join(data))
+
+
+class TextSource:
+    def __init__(self, source):
+        self.source = source
+
+    @abstractmethod
+    def get_text(self) -> str:
+        raise NotImplementedError
 
 
 class Client:
@@ -83,11 +89,11 @@ class Client:
     def connect_to_server(self):
         pass
 
-    def create_server(self, file: str):
-        operation = CreateServerOperation(file)
+    def create_server(self, file: TextSource):
         cl = self
 
         def create_server_function():
+            operation = CreateServerOperation(file.get_text())
             for i in range(3):
                 try:
                     cl.sender.connect(server_address)
@@ -109,10 +115,3 @@ class Client:
                     break
 
         return create_server_function
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    client = Client()
-    a = TextEditor(client)
-    sys.exit(app.exec_())
