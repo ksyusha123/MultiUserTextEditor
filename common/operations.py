@@ -31,7 +31,11 @@ class InsertOperation(Operation):
         raise NotImplementedError
 
     def to_dict(self):
-        pass
+        return {
+            'name': 'Insert',
+            'text': self.text_to_insert,
+            'index': self.index
+        }
 
 
 class DeleteOperation(Operation):

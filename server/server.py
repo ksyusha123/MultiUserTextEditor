@@ -36,9 +36,6 @@ class Server:
     def process_requests(self):
         while True:
             writer, request = self.pending_processing.get()
-            # server_id, user, operation, request_revision = \
-            #     request["server_id"], request["user"], request["operation"], \
-            #     request["revision"]
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
@@ -74,7 +71,8 @@ class Server:
             self.lock.release()
             return operation
 
-        operation = convert_operation(operation, previous_operation)
+        if previous_operation:
+            operation = convert_operation(operation, previous_operation)
         operation.do(text)
         return operation
 
