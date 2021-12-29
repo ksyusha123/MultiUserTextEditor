@@ -1,9 +1,17 @@
+import sys
 from pathlib import Path
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
-    QFontComboBox, QSpinBox
+    QFontComboBox, QSpinBox, QApplication
 import difflib
+from client import TextSource, Client
 
 import common.operations as operations
+
+
+class EditTextSource(TextSource):
+
+    def get_text(self) -> str:
+        return self.source.toPlainText()
 
 
 class TextEditor(QMainWindow):
@@ -12,6 +20,7 @@ class TextEditor(QMainWindow):
 
         self.client = client
         self.text = QTextEdit()
+        self.textSource = EditTextSource(self.text)
         self.prev_text = ""  # здесь нужно хранить последнюю версию
         # текста до изменений
         self.text.textChanged.connect(self.send_operation)
@@ -50,7 +59,7 @@ class TextEditor(QMainWindow):
                                          self.open_file)
         create_server_action = self.create_action(
             "Connect", "Alt+C", "Connect to server",
-            self.client.create_server(self.text.toPlainText()))
+            self.client.create_server(self.textSource))
         # save_action = self.create_action("Download", "Ctrl+D",
         #                                  "Download file", self.download_file)
         # create_file_action = self.create_action(
@@ -92,3 +101,10 @@ class TextEditor(QMainWindow):
         action.setStatusTip(status_tip)
         action.triggered.connect(triggered_method)
         return action
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    client = Client()
+    a = TextEditor(client)
+    sys.exit(app.exec_())
