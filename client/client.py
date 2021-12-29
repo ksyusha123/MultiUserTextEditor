@@ -87,7 +87,7 @@ class Client:
         }
         return json.dumps(dict)
 
-    def connect_to_server(self):
+    def connect_to_server(self, server_id):
         pass
 
     def create_server(self, file: TextSource):
