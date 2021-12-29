@@ -42,6 +42,7 @@ class Client:
         self.receiver.listen()
         self.connected = False
         self.file_id = None
+        self.server_sender = None
         self.lock = Lock()
 
     def put_operation_in_waiting(self, operation):
@@ -61,9 +62,7 @@ class Client:
     def receive(self):
         while self.connected:
             try:
-                sock, addr = self.receiver.accept()
-                print(addr)
-                response = get_response(sock)
+                response = get_response(self.server_sender)
                 print(response)
                 if response['operation'] == 'ack':
                     self.lock.acquire()
@@ -73,14 +72,15 @@ class Client:
                     operation = response['operation']
                     self.apply_changes(operation)
             except socket.error:
-                pass
+                raise socket.error
+
 
     def apply_changes(self, operation):
         pass
 
     def create_request(self, operation):
         dict = {
-            'server_id': self.file_id,
+            'file_id': self.file_id,
             'user_id': self.guid,
             'operation': operation.to_dict(),
             'revision': self.revision
@@ -132,6 +132,7 @@ class Client:
                     continue
                 finally:
                     sock, addr = cl.receiver.accept()
+                    cl.server_sender = sock
                     response = get_response(sock)
                     print(response)
                     if response['file_id']:
@@ -139,7 +140,6 @@ class Client:
                         self.connected = True
                         Thread(target=cl.receive).start()
                         Thread(target=cl.send).start()
-                        sock.close()
                     break
 
         return create_server_function

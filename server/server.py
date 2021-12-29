@@ -41,14 +41,16 @@ class Server:
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
-            
-            if ('server_id' in request and
-                    request['server_id'] in self.previous_operations):
-                previous_operation = self.previous_operations['server_id']
+
+            if ('file_id' in request and
+                    request['file_id'] in self.previous_operations):
+                previous_operation = self.previous_operations[request['file_id']]
             else:
                 previous_operation = None
+            text = None if 'file_id' not in request else self.doc_state[request['file_id']]
             applied_operation = self.apply_operation(request,
-                                                     previous_operation)
+                                                     previous_operation,
+                                                     text)
             revision = None  # request_revision + 1
             self.send_to_users(request, applied_operation, revision, request['file_id'])
 
@@ -66,7 +68,7 @@ class Server:
             else:
                 self.connected_users[file_id][user].sendall(sin)
 
-    def apply_operation(self, request, previous_operation, text=None):
+    def apply_operation(self, request, previous_operation, text):
         operation = request['operation']
         if type(operation) is CreateServerOperation:
             id = self.create_server(operation)
@@ -79,6 +81,7 @@ class Server:
             self.lock.release()
             return operation
 
+         
         if type(operation) is ConnectServerOperation:
             server_to_connect = operation['server_id']
             self.lock.acquire()
@@ -90,10 +93,9 @@ class Server:
 
         if previous_operation:
             operation = convert_operation(operation, previous_operation)
-        self.previous_operations[request['server_id']] = operation
-        self.doc_state['server_id'] = operation.do(text)
+        self.previous_operations[request['file_id']] = operation
+        self.doc_state['file_id'] = operation.do(text)
         return operation
-
 
     def create_server(self, operation):
         id = str(uuid.uuid1())

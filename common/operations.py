@@ -18,7 +18,7 @@ class Operation:
 
 
 class InsertOperation(Operation):
-    def __init__(self, index, text):
+    def __init__(self, index: int, text: str):
         self.name = 'Insert'
         self.text_to_insert = text
         self.index = index
