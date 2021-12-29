@@ -29,6 +29,7 @@ class Client:
         self.revision = 1
         self.waiting_ack = None
         self.sender = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sender.settimeout(2)
         self.receiver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.receiver.bind(('localhost', 63201))
         self.receiver.listen()
@@ -74,7 +75,7 @@ class Client:
         dict = {
             'server_id': self.file_id,
             'user_id': self.guid,
-            'operation': operation.to_json,
+            'operation': operation.to_dict(),
             'revision': self.revision
         }
         return json.dumps(dict)
@@ -83,7 +84,7 @@ class Client:
         pass
 
     def create_server(self, file: str):
-        operation = CreateServerOperation("file")
+        operation = CreateServerOperation(file)
         cl = self
 
         def create_server_function():
@@ -99,8 +100,8 @@ class Client:
                     sock, addr = cl.receiver.accept()
                     response = get_response(sock)
                     print(response)
-                    if response['id']:
-                        self.file_id = response['id']
+                    if response['file_id']:
+                        self.file_id = response['file_id']
                         self.connected = True
                         Thread(target=cl.receive).start()
                         Thread(target=cl.send).start()

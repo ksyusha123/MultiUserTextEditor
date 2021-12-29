@@ -47,18 +47,19 @@ class Server:
             revision = None  # request_revision + 1
             self.send_to_users(request, applied_operation, revision, request['file_id'])
 
-    def send_to_users(self, request, applied_operation, revision, server_id):
+    def send_to_users(self, request, applied_operation, revision, file_id):
         ack = {"operation": "ack",
-               "revision": revision}
+               "revision": revision,
+               "file_id": file_id}
         to_send = {"operation": applied_operation.to_dict(),
                    "revision": revision}
         sin = json.dumps(to_send).encode()
         ack = json.dumps(ack).encode()
-        for user in self.connected_users[server_id]:
+        for user in self.connected_users[file_id]:
             if request['user_id'] == user:
-                self.connected_users[server_id][user].sendall(ack)
+                self.connected_users[file_id][user].sendall(ack)
             else:
-                self.connected_users[server_id][user].sendall(sin)
+                self.connected_users[file_id][user].sendall(sin)
 
     def apply_operation(self, request, previous_operation=None, text=None):
         operation = request['operation']
