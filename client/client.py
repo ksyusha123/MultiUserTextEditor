@@ -88,7 +88,30 @@ class Client:
         return json.dumps(dict)
 
     def connect_to_server(self, server_id):
-        pass
+        operation = ConnectServerOperation(server_id)
+        for i in range(3):
+            try:
+                self.sender.connect(server_address)
+                request = {
+                    'operation': operation.to_dict(),
+                    'user_id': self.guid,
+                    'addr': 'localhost'
+                }
+                dump = json.dumps(request)
+                self.sender.sendall(dump.encode())
+            except socket.error:
+                continue
+            finally:
+                sock, addr = self.receiver.accept()
+                response = get_response(sock)
+                print(response)
+                if response['file_id']:
+                    self.file_id = response['file_id']
+                    self.connected = True
+                    Thread(target=self.receive).start()
+                    Thread(target=self.send).start()
+                    sock.close()
+                break
 
     def create_server(self, file: TextSource):
         cl = self

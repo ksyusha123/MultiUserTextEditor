@@ -1,9 +1,14 @@
-from PyQt5.QtWidgets import QWidget, QInputDialog
+from PyQt5.QtWidgets import QWidget, QMessageBox
 
 
-class ConnectServerWindow(QWidget):
+class ConnectServerWindow(QMessageBox):
     def __init__(self):
         super().__init__()
-
-    def init_ui(self):
-        self.button
+        self.setWindowTitle("Create connection")
+        self.setGeometry(100, 100, 100, 100)
+        self.setIcon(QMessageBox.Information)
+        self.setText("You created connection. Your file id:")
+        self.setStandardButtons(QMessageBox.Ok)
+        returned = self.exec_()
+        if returned == QMessageBox.Ok:
+            self.close()
