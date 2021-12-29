@@ -44,13 +44,14 @@ class TextEditor(QMainWindow):
         else:
             operation = opcodes[0]
         if operation[0] == 'insert':
-            symbol = current_text[operation[3]:operation[4]]
+            inserted_text = current_text[operation[3]:operation[4]]
             index = operation[1]
             self.client.put_operation_in_waiting(
-                operations.InsertOperation(symbol, index))
+                operations.InsertOperation(inserted_text, index))
         elif operation[0] == 'delete':
             index = operation[1]
-            self.client.put_operation_in_waiting(operations.DeleteOperation(index))
+            self.client.put_operation_in_waiting(
+                operations.DeleteOperation(index))
         self.prev_text = current_text
 
     def init_menu(self):

@@ -5,7 +5,7 @@ class Operation:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def do(self):
+    def do(self, text):
         pass
 
     @abstractmethod
@@ -18,23 +18,42 @@ class Operation:
 
 
 class InsertOperation(Operation):
+    def __init__(self, index, text):
+        self.name = 'Insert'
+        self.text_to_insert = text
+        self.index = index
+
+    def do(self, text):
+        return f"{text[:self.index]}{self.text_to_insert}{text[self.index:]}"
+
+    def redo(self):
+        raise NotImplementedError
+
     def to_dict(self):
         return {
-            'name': self.name,
-            'text': self.text,
+            'name': 'Insert',
+            'text': self.text_to_insert,
             'index': self.index
         }
 
-    def __init__(self, index, text):
-        self.name = 'Insert'
-        self.text = text
-        self.index = index
 
-    def do(self):
-        pass
+class DeleteOperation(Operation):
+
+    def __init__(self, index):
+        self.index = index
+        self.name = 'Delete'
+
+    def do(self, text):
+        return f"{text[:self.index]}{text[self.index + 1:]}"
 
     def redo(self):
-        pass
+        raise NotImplementedError
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'index': self.index
+        }
 
 
 class CreateServerOperation(Operation):
@@ -49,29 +68,11 @@ class CreateServerOperation(Operation):
         self.file = file
         self.name = 'Create'
 
-    def do(self):
+    def do(self, text=None):
         pass
-
-    def redo(self):
-        pass
-
-
-class DeleteOperation(Operation):
-    def to_dict(self):
-        return {
-            'name': self.name,
-            'index': self.index
-        }
-
-    def __init__(self, index):
-        self.index = index
-        self.name = 'Delete'
 
     def redo(self):
         raise NotImplementedError
-
-    def do(self):
-        pass
 
 
 # class StyleOperation(Operation):

@@ -17,6 +17,7 @@ class Server:
         self.pending_processing = Queue()
         self.doc_state = {}
         self.connected_users = {}
+        self.previous_operations = {}
         self.thread = Thread(target=self.process_requests).start()
         self.lock = Lock()
         self.previous_operation = None
@@ -37,16 +38,17 @@ class Server:
     def process_requests(self):
         while True:
             writer, request = self.pending_processing.get()
-            # server_id, user, operation, request_revision = \
-            #     request["server_id"], request["user"], request["operation"], \
-            #     request["revision"]
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
-            applied_operation = self.apply_operation(request, self.previous_operation)
-            self.lock.acquire()
-            self.previous_operation = operation
-            self.lock.release()
+            
+            if ('server_id' in request and
+                    request['server_id'] in self.previous_operations):
+                previous_operation = self.previous_operations['server_id']
+            else:
+                previous_operation = None
+            applied_operation = self.apply_operation(request,
+                                                     previous_operation)
             revision = None  # request_revision + 1
             self.send_to_users(request, applied_operation, revision, request['file_id'])
 
@@ -77,20 +79,13 @@ class Server:
             self.lock.release()
             return operation
 
-        operation_to_perform = convert_operation(operation,
-                                                 previous_operation)
-        if type(operation_to_perform) is InsertOperation:
-            self.insert(operation, text)
-        elif type(operation_to_perform) is DeleteOperation:
-            self.delete(operation, text)
-        return operation_to_perform
 
-    def insert(self, operation: InsertOperation, text: str) -> str:
-        return f"{text[:operation.index]}{operation.text}" \
-               f"{text[operation.index:]}"
+        if previous_operation:
+            operation = convert_operation(operation, previous_operation)
+        self.previous_operations[request['server_id']] = operation
+        operation.do(text)
+        return operation
 
-    def delete(self, operation: DeleteOperation, text: str) -> str:
-        return f"{text[:operation.index]}{text[operation.index + 1:]}"
 
     def create_server(self, operation):
         id = str(uuid.uuid1())
@@ -98,7 +93,6 @@ class Server:
         self.pending_processing = Queue()
         self.doc_state[id] = operation.file
         return id
-
 
 
 async def start_server():

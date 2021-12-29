@@ -1,21 +1,22 @@
-from common.operations import InsertOperation, DeleteOperation, CreateServerOperation
+from common.operations import *
+
 
 
 def _insert_insert(insert1: InsertOperation, insert2: InsertOperation) -> InsertOperation:
     if insert1.index < insert2.index:
         return insert1
-    return InsertOperation(insert1.index + len(insert1.text), insert1.text)
+    return InsertOperation(insert1.index + len(insert1.text_to_insert), insert1.text_to_insert)
 
 
 def _insert_delete(insert: InsertOperation, delete: DeleteOperation) -> DeleteOperation:
     if insert.index > delete.index:
         return delete
-    return DeleteOperation(delete.index + len(insert.text))
+    return DeleteOperation(delete.index + len(insert.text_to_insert))
 
 
 def _delete_insert(delete: DeleteOperation, insert: InsertOperation) -> InsertOperation:
     if delete.index < insert.index:
-        return InsertOperation(insert.index - len(insert.text), insert.text)
+        return InsertOperation(insert.index - len(insert.text_to_insert), insert.text_to_insert)
     return insert
 
 
@@ -25,7 +26,6 @@ def _delete_delete(delete1, delete2):
     elif delete1.index > delete2.index:
         return DeleteOperation(delete1.index - 1)
     return None
-
 
 def convert_operation(operation, previous_operation):
     if not previous_operation or type(previous_operation) is CreateServerOperation:
