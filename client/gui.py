@@ -3,8 +3,9 @@ from pathlib import Path
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
     QFontComboBox, QSpinBox, QApplication, QInputDialog
 import difflib
-from client import TextSource, Client
+from threading import Thread
 
+from client import TextSource, Client
 import common.operations as operations
 
 
@@ -33,6 +34,8 @@ class TextEditor(QMainWindow):
 
         self.init_menu()
         self.init_toolbar()
+
+        # Thread(target=self.update_text_edit).start()
 
         self.show()
 
@@ -107,6 +110,10 @@ class TextEditor(QMainWindow):
         action.setStatusTip(status_tip)
         action.triggered.connect(triggered_method)
         return action
+
+    def update_text_edit(self):
+        while True:
+            self.text.setText(self.client.doc_state)
 
 
 if __name__ == '__main__':

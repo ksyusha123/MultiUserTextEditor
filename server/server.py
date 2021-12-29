@@ -80,7 +80,6 @@ class Server:
             request['file_id'] = id
             self.lock.release()
             return operation
-
          
         if type(operation) is ConnectServerOperation:
             server_to_connect = operation['server_id']

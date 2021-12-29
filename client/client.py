@@ -3,6 +3,7 @@ import socket
 import uuid
 from queue import Queue
 from common.operations import *
+from common.operations_converter import *
 from threading import Thread, Lock
 
 server_address = ("localhost", 5000)
@@ -42,6 +43,7 @@ class Client:
         self.receiver.listen()
         self.connected = False
         self.file_id = None
+        self.doc_state = ""
         self.server_sender = None
         self.lock = Lock()
 
@@ -74,9 +76,11 @@ class Client:
             except socket.error:
                 raise socket.error
 
-
     def apply_changes(self, operation):
-        pass
+        if type(operation) is CreateServerOperation or type(operation) is \
+                ConnectServerOperation:
+            return
+        self.doc_state = operation.do(self.doc_state)
 
     def create_request(self, operation):
         dict = {
