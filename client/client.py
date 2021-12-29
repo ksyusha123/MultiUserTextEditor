@@ -1,4 +1,5 @@
 import json
+import random
 import socket
 import uuid
 from queue import Queue
@@ -36,10 +37,11 @@ class Client:
         self.revision = 1
         self.waiting_ack = None
         self.sender = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #self.sender.settimeout(1)
+        self.addr = ('localhost', random.Random().randint(20000, 60000))
+        # self.sender.settimeout(1)
         self.receiver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.receiver.bind(('localhost', 63201))
-        #self.receiver.settimeout(1)
+        self.receiver.bind(self.addr)
+        # self.receiver.settimeout(1)
         self.receiver.listen()
         self.connected = False
         self.file_id = None
@@ -99,7 +101,7 @@ class Client:
                 request = {
                     'operation': operation.to_dict(),
                     'user_id': self.guid,
-                    'addr': 'localhost'
+                    'addr': self.addr
                 }
                 dump = json.dumps(request)
                 self.sender.sendall(dump.encode())
@@ -128,7 +130,7 @@ class Client:
                     request = {
                         'operation': operation.to_dict(),
                         'user_id': cl.guid,
-                        'addr': 'localhost'
+                        'addr': cl.addr
                     }
                     dump = json.dumps(request)
                     cl.sender.sendall(dump.encode())

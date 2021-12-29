@@ -61,7 +61,7 @@ class CreateServerOperation(Operation):
     def to_dict(self):
         return {
             'name': self.name,
-            'file': self.file
+            'file': self.file,
         }
 
     def __init__(self, file):
@@ -87,7 +87,7 @@ class ConnectServerOperation(Operation):
     def to_dict(self):
         return {
             'name': self.name,
-            'server_id': self.server_id
+            'server_id': self.server_id,
         }
 
     def do(self, text):
