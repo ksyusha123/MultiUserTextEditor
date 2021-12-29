@@ -75,6 +75,25 @@ class CreateServerOperation(Operation):
         raise NotImplementedError
 
 
+class ConnectServerOperation(Operation):
+
+    def __init__(self, server_id):
+        self.name = "Connect"
+        self.server_id = server_id
+
+    def redo(self):
+        raise NotImplementedError
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'server_id': self.server_id
+        }
+
+    def do(self, text):
+        raise NotImplementedError
+
+
 # class StyleOperation(Operation):
 #     def redo(self):
 #         pass

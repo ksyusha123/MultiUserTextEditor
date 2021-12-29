@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
-    QFontComboBox, QSpinBox, QApplication
+    QFontComboBox, QSpinBox, QApplication, QInputDialog
 import difflib
 from client import TextSource, Client
 
@@ -17,7 +17,8 @@ class EditTextSource(TextSource):
 class TextEditor(QMainWindow):
     def __init__(self, client: Client):
         super().__init__()
-
+        self.setWindowTitle("Google docss")
+        self.setGeometry(150, 100, 960, 480)
         self.client = client
         self.text = QTextEdit()
         self.textSource = EditTextSource(self.text)
@@ -58,24 +59,29 @@ class TextEditor(QMainWindow):
         open_action = self.create_action("Open", "Ctrl+O", "Open file",
                                          self.open_file)
         create_server_action = self.create_action(
-            "Connect", "Alt+C", "Connect to server",
+            "Create connection", "Alt+C", "Create connection to edit file",
             self.client.create_server(self.textSource))
-        # save_action = self.create_action("Download", "Ctrl+D",
-        #                                  "Download file", self.download_file)
-        # create_file_action = self.create_action(
-        #     "New", "Ctrl+N", "Create new file", self.create_file)
+        connect_to_server_action = self.create_action(
+            "Connect to file", "Alt+F",
+            "Connect to server and share your file",
+            self.connect_to_server)
 
         file_menu = self.menu_bar.addMenu("&File")
         file_menu.addAction(open_action)
         file_menu.addAction(create_server_action)
-        # file_menu.addAction(save_action)
-        # file_menu.addAction(create_file_action)
+        file_menu.addAction(connect_to_server_action)
 
     def open_file(self):
         filepath = Path(QFileDialog.getOpenFileName(
             self, "Choose text file", ".", "Text files (*.txt)")[0])
         with open(filepath) as file:
             self.text.setText(file.read())
+
+    def connect_to_server(self):
+        text, ok = QInputDialog.getText(self, 'Connect to server',
+                                        'Enter server id')
+        if ok:
+            self.client.connect_to_server(text)
 
     # def download_file(self):
     #     # todo

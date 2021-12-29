@@ -81,6 +81,16 @@ class Server:
             self.lock.release()
             return operation
 
+         
+        if type(operation) is ConnectServerOperation:
+            server_to_connect = operation['server_id']
+            self.lock.acquire()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((request['addr'], 63201))
+            self.connected_users[server_to_connect][request['user_id']] = sock
+            self.lock.release()
+            return operation
+
         if previous_operation:
             operation = convert_operation(operation, previous_operation)
         self.previous_operations[request['file_id']] = operation
