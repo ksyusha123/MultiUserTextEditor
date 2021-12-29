@@ -15,7 +15,7 @@ class EditTextSource(TextSource):
 
 
 class TextEditor(QMainWindow):
-    def __init__(self, client):
+    def __init__(self, client: Client):
         super().__init__()
 
         self.client = client

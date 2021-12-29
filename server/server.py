@@ -20,6 +20,7 @@ class Server:
         self.previous_operations = {}
         self.thread = Thread(target=self.process_requests).start()
         self.lock = Lock()
+        self.previous_operation = None
 
     async def handle_client(self, reader, writer):
         while True:
@@ -40,6 +41,7 @@ class Server:
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
+            
             if ('server_id' in request and
                     request['server_id'] in self.previous_operations):
                 previous_operation = self.previous_operations['server_id']
@@ -77,11 +79,13 @@ class Server:
             self.lock.release()
             return operation
 
+
         if previous_operation:
             operation = convert_operation(operation, previous_operation)
         self.previous_operations[request['server_id']] = operation
         self.doc_state['server_id'] = operation.do(text)
         return operation
+
 
     def create_server(self, operation):
         id = str(uuid.uuid1())
