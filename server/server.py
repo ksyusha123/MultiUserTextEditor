@@ -75,18 +75,17 @@ class Server:
             self.lock.acquire()
             self.doc_state[id] = operation.file
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((request['addr'], 63201))
+            sock.connect(tuple(request['addr']))
             self.connected_users[id] = {request['user_id']: sock}
             request['file_id'] = id
             self.lock.release()
             return operation
 
-         
         if type(operation) is ConnectServerOperation:
             server_to_connect = operation['server_id']
             self.lock.acquire()
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((request['addr'], 63201))
+            sock.connect(tuple(request['addr']))
             self.connected_users[server_to_connect][request['user_id']] = sock
             self.lock.release()
             return operation
