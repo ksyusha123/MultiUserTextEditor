@@ -35,9 +35,10 @@ class Client:
         self.revision = 1
         self.waiting_ack = None
         self.sender = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sender.settimeout(2)
+        #self.sender.settimeout(1)
         self.receiver = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.receiver.bind(('localhost', 63201))
+        #self.receiver.settimeout(1)
         self.receiver.listen()
         self.connected = False
         self.file_id = None
@@ -48,7 +49,7 @@ class Client:
 
     def send(self):
         while True:
-            if self.waiting_ack:
+            if self.waiting_ack or self.waiting.empty():
                 continue
             self.lock.acquire()
             operation = self.waiting.get()

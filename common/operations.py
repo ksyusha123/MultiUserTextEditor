@@ -19,7 +19,11 @@ class Operation:
 
 class InsertOperation(Operation):
     def to_dict(self):
-        pass
+        return {
+            'name': self.name,
+            'text': self.text,
+            'index': self.index
+        }
 
     def __init__(self, index, text):
         self.name = 'Insert'

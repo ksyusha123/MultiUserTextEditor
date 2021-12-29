@@ -1,4 +1,4 @@
-from common.operations import InsertOperation, DeleteOperation
+from common.operations import InsertOperation, DeleteOperation, CreateServerOperation
 
 
 def _insert_insert(insert1: InsertOperation, insert2: InsertOperation) -> InsertOperation:
@@ -28,6 +28,8 @@ def _delete_delete(delete1, delete2):
 
 
 def convert_operation(operation, previous_operation):
+    if not previous_operation or type(previous_operation) is CreateServerOperation:
+        return operation
     if previous_operation is InsertOperation:
         if operation is InsertOperation:
             operation_to_perform = _insert_insert(previous_operation,

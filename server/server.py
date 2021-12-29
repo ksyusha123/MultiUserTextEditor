@@ -19,6 +19,7 @@ class Server:
         self.connected_users = {}
         self.thread = Thread(target=self.process_requests).start()
         self.lock = Lock()
+        self.previous_operation = None
 
     async def handle_client(self, reader, writer):
         while True:
@@ -42,8 +43,10 @@ class Server:
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
-            previous_operation = None
-            applied_operation = self.apply_operation(request)
+            applied_operation = self.apply_operation(request, self.previous_operation)
+            self.lock.acquire()
+            self.previous_operation = operation
+            self.lock.release()
             revision = None  # request_revision + 1
             self.send_to_users(request, applied_operation, revision, request['file_id'])
 
@@ -61,7 +64,7 @@ class Server:
             else:
                 self.connected_users[file_id][user].sendall(sin)
 
-    def apply_operation(self, request, previous_operation=None, text=None):
+    def apply_operation(self, request, previous_operation, text=None):
         operation = request['operation']
         if type(operation) is CreateServerOperation:
             id = self.create_server(operation)
@@ -78,7 +81,7 @@ class Server:
                                                  previous_operation)
         if type(operation_to_perform) is InsertOperation:
             self.insert(operation, text)
-        else:
+        elif type(operation_to_perform) is DeleteOperation:
             self.delete(operation, text)
         return operation_to_perform
 
