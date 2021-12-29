@@ -91,7 +91,11 @@ class Client:
             for i in range(3):
                 try:
                     cl.sender.connect(server_address)
-                    request = {'operation': operation.to_dict(), 'user_id': cl.guid, 'addr': 'localhost'}
+                    request = {
+                        'operation': operation.to_dict(),
+                        'user_id': cl.guid,
+                        'addr': 'localhost'
+                    }
                     dump = json.dumps(request)
                     cl.sender.sendall(dump.encode())
                 except socket.error:
