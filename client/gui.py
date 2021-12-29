@@ -35,7 +35,7 @@ class TextEditor(QMainWindow):
         self.init_menu()
         self.init_toolbar()
 
-        # Thread(target=self.update_text_edit).start()
+        Thread(target=self.update_text_edit).start()
 
         self.show()
 
@@ -113,7 +113,7 @@ class TextEditor(QMainWindow):
 
     def update_text_edit(self):
         while True:
-            self.text.setText(self.client.doc_state)
+            self.text.insertPlainText(self.client.doc_state)
 
 
 if __name__ == '__main__':
