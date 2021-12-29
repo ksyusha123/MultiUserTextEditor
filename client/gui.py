@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
     QFontComboBox, QSpinBox, QApplication, QInputDialog
+from PyQt5.QtGui import QTextCursor
 import difflib
 from threading import Thread
 
@@ -113,7 +114,11 @@ class TextEditor(QMainWindow):
 
     def update_text_edit(self):
         while True:
+            self.text.clear()
             self.text.insertPlainText(self.client.doc_state)
+            document = self.text.document()
+            cursor = QTextCursor(document)
+            cursor.movePosition(QTextCursor.End)
 
 
 if __name__ == '__main__':
