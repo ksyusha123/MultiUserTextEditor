@@ -17,6 +17,7 @@ class Server:
         self.pending_processing = Queue()
         self.doc_state = {}
         self.connected_users = {}
+        self.previous_operations = {}
         self.thread = Thread(target=self.process_requests).start()
         self.lock = Lock()
 
@@ -39,8 +40,13 @@ class Server:
             operation = request['operation']
             operation = operation_from_json(operation)
             request['operation'] = operation
-            previous_operation = None
-            applied_operation = self.apply_operation(request)
+            if ('server_id' in request and
+                    request['server_id'] in self.previous_operations):
+                previous_operation = self.previous_operations['server_id']
+            else:
+                previous_operation = None
+            applied_operation = self.apply_operation(request,
+                                                     previous_operation)
             revision = None  # request_revision + 1
             self.send_to_users(request, applied_operation, revision, request['file_id'])
 
@@ -58,7 +64,7 @@ class Server:
             else:
                 self.connected_users[file_id][user].sendall(sin)
 
-    def apply_operation(self, request, previous_operation=None, text=None):
+    def apply_operation(self, request, previous_operation, text=None):
         operation = request['operation']
         if type(operation) is CreateServerOperation:
             id = self.create_server(operation)
@@ -73,6 +79,7 @@ class Server:
 
         if previous_operation:
             operation = convert_operation(operation, previous_operation)
+        self.previous_operations[request['server_id']] = operation
         operation.do(text)
         return operation
 
