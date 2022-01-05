@@ -1,7 +1,6 @@
 from common.operations import *
 
 
-
 def _insert_insert(insert1: InsertOperation, insert2: InsertOperation) -> InsertOperation:
     if insert1.index < insert2.index:
         return insert1
@@ -27,21 +26,22 @@ def _delete_delete(delete1, delete2):
         return DeleteOperation(delete1.index - 1)
     return None
 
+
 def convert_operation(operation, previous_operation):
     if not previous_operation or type(previous_operation) is CreateServerOperation:
         return operation
-    if previous_operation is InsertOperation:
-        if operation is InsertOperation:
+    if type(previous_operation) is InsertOperation:
+        if type(operation) is InsertOperation:
             operation_to_perform = _insert_insert(previous_operation,
                                                   operation)
-        else:
+        elif type(operation) is DeleteOperation:
             operation_to_perform = _insert_delete(previous_operation,
                                                   operation)
-    else:
-        if operation is InsertOperation:
+    elif type(previous_operation) is DeleteOperation:
+        if type(operation) is InsertOperation:
             operation_to_perform = _delete_insert(previous_operation,
                                                   operation)
-        else:
+        elif type(operation) is DeleteOperation:
             operation_to_perform = _delete_delete(previous_operation,
                                                   operation)
     return operation_to_perform
