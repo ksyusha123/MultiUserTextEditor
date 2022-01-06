@@ -3,9 +3,9 @@ import random
 import socket
 import uuid
 from queue import Queue
-from common.operations import *
-from common.operations_converter import *
 from threading import Thread, Lock
+
+from common.operations_converter import *
 
 server_address = ("localhost", 5000)
 
@@ -28,10 +28,14 @@ class TextSource:
     def get_text(self) -> str:
         raise NotImplementedError
 
+    @abstractmethod
+    def set_text(self, text: str):
+        raise NotImplementedError
+
 
 class Client:
     def __init__(self):
-        self.guid = str(uuid.uuid1())
+        self.guid: str = str(uuid.uuid1())
         self.waiting = Queue()
         self.previous_operation = None
         self.revision = 1
@@ -45,9 +49,22 @@ class Client:
         self.receiver.listen()
         self.connected = False
         self.file_id = None
-        self.doc_state = ""
+        self._doc_state = ""
         self.server_sender = None
         self.lock = Lock()
+        self.text_source: TextSource = None
+
+    @property
+    def doc_state(self):
+        return self._doc_state
+
+    @doc_state.setter
+    def doc_state(self, text: str):
+        self._doc_state = text
+        self.text_source.set_text(text)
+
+    def set_text_source(self, text_source: TextSource):
+        self.text_source = text_source
 
     def put_operation_in_waiting(self, operation):
         self.waiting.put(operation)
@@ -73,14 +90,13 @@ class Client:
                     self.waiting_ack = None
                     self.lock.release()
                 else:
-                    operation = response['operation']
+                    operation = operation_from_json(response['operation'])
                     self.apply_changes(operation)
             except socket.error:
                 raise socket.error
 
     def apply_changes(self, operation):
-        if type(operation) is CreateServerOperation or type(operation) is \
-                ConnectServerOperation:
+        if type(operation) in {CreateServerOperation, ConnectServerOperation}:
             return
         self.doc_state = operation.do(self.doc_state)
 
@@ -93,15 +109,16 @@ class Client:
         }
         return json.dumps(dict)
 
-    def connect_to_server(self, server_id):
-        operation = ConnectServerOperation(server_id)
+    def connect_to_server(self, file_id):
+        operation = ConnectServerOperation(file_id)
         for i in range(3):
             try:
                 self.sender.connect(server_address)
                 request = {
                     'operation': operation.to_dict(),
                     'user_id': self.guid,
-                    'addr': self.addr
+                    'addr': self.addr,
+                    'file_id': file_id
                 }
                 dump = json.dumps(request)
                 self.sender.sendall(dump.encode())
@@ -110,13 +127,14 @@ class Client:
             finally:
                 sock, addr = self.receiver.accept()
                 response = get_response(sock)
+                self.server_sender = sock
                 print(response)
                 if response['file_id']:
                     self.file_id = response['file_id']
+                    self.doc_state = response['file']
                     self.connected = True
                     Thread(target=self.receive).start()
                     Thread(target=self.send).start()
-                    sock.close()
                 break
 
     def create_server(self, file: TextSource):

@@ -4,6 +4,7 @@ from queue import Queue
 import json
 import uuid
 from threading import Thread, Lock
+from collections import defaultdict
 
 from common.operations_converter import convert_operation
 from common.operations import *
@@ -15,7 +16,7 @@ class Server:
         self.port = port
         self.revision_log = {}
         self.pending_processing = Queue()
-        self.doc_state = {}
+        self.doc_state = defaultdict(str)
         self.connected_users = {}
         self.previous_operations = {}
         self.thread = Thread(target=self.process_requests).start()
@@ -58,10 +59,15 @@ class Server:
         ack = {"operation": "ack",
                "revision": revision,
                "file_id": file_id}
+        if type(applied_operation) in {ConnectServerOperation, CreateServerOperation}:
+            ack["file"] = self.doc_state[file_id]
+            ack = json.dumps(ack).encode()
+            self.connected_users[file_id][request['user_id']].sendall(ack)
+            return
+        ack = json.dumps(ack).encode()
         to_send = {"operation": applied_operation.to_dict(),
                    "revision": revision}
         sin = json.dumps(to_send).encode()
-        ack = json.dumps(ack).encode()
         for user in self.connected_users[file_id]:
             if request['user_id'] == user:
                 self.connected_users[file_id][user].sendall(ack)
@@ -82,7 +88,7 @@ class Server:
             return operation
 
         if type(operation) is ConnectServerOperation:
-            server_to_connect = operation['server_id']
+            server_to_connect = operation.file_id
             self.lock.acquire()
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect(tuple(request['addr']))
@@ -93,7 +99,8 @@ class Server:
         if previous_operation:
             operation = convert_operation(operation, previous_operation)
         self.previous_operations[request['file_id']] = operation
-        self.doc_state['file_id'] = operation.do(text)
+        self.doc_state[request['file_id']] = operation.do(text)
+        print(self.doc_state[request['file_id']])
         return operation
 
     def create_server(self, operation):

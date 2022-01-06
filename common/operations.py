@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, ABC
+from abc import ABCMeta, abstractmethod
 
 
 class Operation:
@@ -39,12 +39,15 @@ class InsertOperation(Operation):
 
 class DeleteOperation(Operation):
 
-    def __init__(self, index):
-        self.index = index
+    def __init__(self, begin, end):
+        self.begin = begin
+        self.end = end
         self.name = 'Delete'
+        self.length = end - begin
 
     def do(self, text):
-        return f"{text[:self.index]}{text[self.index + 1:]}"
+        temp = f"{text[:self.begin]}{text[self.end:]}"
+        return temp
 
     def redo(self):
         raise NotImplementedError
@@ -52,7 +55,8 @@ class DeleteOperation(Operation):
     def to_dict(self):
         return {
             'name': self.name,
-            'index': self.index
+            'begin': self.begin,
+            'end': self.end
         }
 
 
@@ -77,9 +81,9 @@ class CreateServerOperation(Operation):
 
 class ConnectServerOperation(Operation):
 
-    def __init__(self, server_id):
+    def __init__(self, file_id):
         self.name = "Connect"
-        self.server_id = server_id
+        self.file_id = file_id
 
     def redo(self):
         raise NotImplementedError
@@ -87,7 +91,7 @@ class ConnectServerOperation(Operation):
     def to_dict(self):
         return {
             'name': self.name,
-            'server_id': self.server_id,
+            'file_id': self.file_id,
         }
 
     def do(self, text):
@@ -104,9 +108,11 @@ class ConnectServerOperation(Operation):
 
 def operation_from_json(dict):
     if dict['name'] == 'Insert':
-        return InsertOperation(dict['text'], dict['index'])
+        return InsertOperation(dict['index'], dict['text'])
     if dict['name'] == 'Delete':
-        return DeleteOperation(dict['index'])
+        return DeleteOperation(dict['begin'], dict['end'])
     if dict['name'] == 'Create':
         return CreateServerOperation(dict['file'])
+    if dict['name'] == 'Connect':
+        return ConnectServerOperation(dict['file_id'])
     return None

@@ -3,27 +3,27 @@ from common.operations import *
 
 def _insert_insert(insert1: InsertOperation, insert2: InsertOperation) -> InsertOperation:
     if insert1.index < insert2.index:
-        return insert1
-    return InsertOperation(insert1.index + len(insert1.text_to_insert), insert1.text_to_insert)
+        return insert2
+    return InsertOperation(insert2.index + len(insert1.text_to_insert), insert2.text_to_insert)
 
 
 def _insert_delete(insert: InsertOperation, delete: DeleteOperation) -> DeleteOperation:
-    if insert.index > delete.index:
+    if insert.index >= delete.begin:
         return delete
-    return DeleteOperation(delete.index + len(insert.text_to_insert))
+    return DeleteOperation(delete.begin + len(insert.text_to_insert), delete.end + len(insert.text_to_insert))
 
 
 def _delete_insert(delete: DeleteOperation, insert: InsertOperation) -> InsertOperation:
-    if delete.index < insert.index:
-        return InsertOperation(insert.index - len(insert.text_to_insert), insert.text_to_insert)
+    if delete.begin <= insert.index:
+        return InsertOperation(insert.index - (delete.end - delete.begin), insert.text_to_insert)
     return insert
 
 
-def _delete_delete(delete1, delete2):
-    if delete1.index < delete2.index:
-        return delete1
-    elif delete1.index > delete2.index:
-        return DeleteOperation(delete1.index - 1)
+def _delete_delete(delete: DeleteOperation, prev_delete: DeleteOperation) -> DeleteOperation:
+    if delete.begin < prev_delete.begin:
+        return delete
+    elif delete.begin > prev_delete.begin:
+        return DeleteOperation(delete.begin - prev_delete.length, delete.end - prev_delete.length)
     return None
 
 

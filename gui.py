@@ -1,16 +1,18 @@
+import difflib
 import sys
 from pathlib import Path
+
+from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QFileDialog, \
     QFontComboBox, QSpinBox, QApplication, QInputDialog
-from PyQt5.QtGui import QTextCursor
-import difflib
-from threading import Thread
 
-from client import TextSource, Client
 import common.operations as operations
+from client.client import TextSource, Client
 
 
 class EditTextSource(TextSource):
+    def set_text(self, text: str):
+        self.source.setPlainText(text)
 
     def get_text(self) -> str:
         return self.source.toPlainText()
@@ -19,11 +21,12 @@ class EditTextSource(TextSource):
 class TextEditor(QMainWindow):
     def __init__(self, client: Client):
         super().__init__()
-        self.setWindowTitle("Google docss")
+        self.setWindowTitle("Google docs")
         self.setGeometry(150, 100, 960, 480)
         self.client = client
         self.text = QTextEdit()
         self.textSource = EditTextSource(self.text)
+        self.client.set_text_source(self.textSource)
         self.prev_text = ""  # здесь нужно хранить последнюю версию
         # текста до изменений
         self.text.textChanged.connect(self.send_operation)
@@ -36,11 +39,12 @@ class TextEditor(QMainWindow):
         self.init_menu()
         self.init_toolbar()
 
-        #Thread(target=self.update_text_edit).start()
-
         self.show()
 
     def send_operation(self):
+        if not self.client.connected:
+            self.prev_text = self.text.toPlainText()
+            return
         current_text = self.text.toPlainText()
         matcher = difflib.SequenceMatcher(None, self.prev_text, current_text)
         opcodes = matcher.get_opcodes()
@@ -52,11 +56,12 @@ class TextEditor(QMainWindow):
             inserted_text = current_text[operation[3]:operation[4]]
             index = operation[1]
             self.client.put_operation_in_waiting(
-                operations.InsertOperation(inserted_text, index))
+                operations.InsertOperation(index, inserted_text))
         elif operation[0] == 'delete':
-            index = operation[1]
+            begin = operation[1]
+            end = operation[2]
             self.client.put_operation_in_waiting(
-                operations.DeleteOperation(index))
+                operations.DeleteOperation(begin, end))
         self.prev_text = current_text
 
     def init_menu(self):
@@ -87,12 +92,6 @@ class TextEditor(QMainWindow):
         if ok:
             self.client.connect_to_server(text)
 
-    # def download_file(self):
-    #     # todo
-
-    # def create_file(self):
-    #     # do smth to create new file
-
     def init_toolbar(self):
         font_box = QFontComboBox()
         font_box.currentFontChanged.connect(lambda font:
@@ -111,15 +110,6 @@ class TextEditor(QMainWindow):
         action.setStatusTip(status_tip)
         action.triggered.connect(triggered_method)
         return action
-
-    def update_text_edit(self):
-        while True:
-            self.text.clear()
-            self.text.insertPlainText(self.client.doc_state)
-            document = self.text.document()
-            cursor = QTextCursor(document)
-            cursor.movePosition(QTextCursor.End)
-
 
 
 if __name__ == '__main__':
